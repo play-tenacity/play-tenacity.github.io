@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Small Character Rainbow Matrix Rain</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    overflow: hidden;
+    background: black;
+    height: 100%;
+    font-family: monospace;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<canvas id="matrix"></canvas>
+
+<script>
+(() => {
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d');
+
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+
+  const fontSize = 12;  // Smaller font size for more columns
+  const columns = Math.floor(width / fontSize);
+  const rows = Math.floor(height / fontSize);
+  
+  const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789@#$%^&*ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  const matrix = [];
+  for(let i = 0; i < columns; i++) {
+    matrix[i] = new Array(rows).fill('');
+  }
+
+  const drops = [];
+  for(let i = 0; i < columns; i++) {
+    drops[i] = Math.random() * rows;
+  }
+
+  function getRainbowColor(step) {
+    const frequency = 0.1;
+    const red = Math.sin(frequency * step + 0) * 127 + 128;
+    const green = Math.sin(frequency * step + 2) * 127 + 128;
+    const blue = Math.sin(frequency * step + 4) * 127 + 128;
+    return `rgb(${Math.floor(red)},${Math.floor(green)},${Math.floor(blue)})`;
+  }
+
+  function draw() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.font = fontSize + 'px monospace';
+    ctx.textBaseline = 'top';
+
+    for(let i = 0; i < columns; i++) {
+      drops[i] += 0.1;
+
+      const headRow = Math.floor(drops[i]);
+      if(headRow > rows && Math.random() > 0.98) {
+        drops[i] = 0;
+      }
+
+      if(headRow >= 0 && headRow < rows) {
+        matrix[i][headRow] = chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+
+      for(let j = Math.max(0, headRow - 20); j <= headRow; j++) {
+        if(j >= 0 && j < rows && matrix[i][j]) {
+          const x = i * fontSize;
+          const y = j * fontSize;
+
+          const distanceFromHead = headRow - j;
+          const alpha = 1 - distanceFromHead / 22;
+
+          const color = getRainbowColor(i * 10 + j * 5);
+
+          ctx.fillStyle = color.replace('rgb', 'rgba').replace(')', `,${alpha.toFixed(2)})`);
+          ctx.fillText(matrix[i][j], x, y);
+        }
+      }
+    }
+  }
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+  }
+  window.addEventListener('resize', () => {
+    resize();
+    // Reset matrix and drops when resized for best fit
+    const newColumns = Math.floor(width / fontSize);
+    const newRows = Math.floor(height / fontSize);
+
+    // Rebuild matrix with new size
+    matrix.length = 0;
+    for(let i = 0; i < newColumns; i++) {
+      matrix[i] = new Array(newRows).fill('');
+    }
+    drops.length = 0;
+    for(let i = 0; i < newColumns; i++) {
+      drops[i] = Math.random() * newRows;
+    }
+  });
+
+  function loop() {
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  loop();
+})();
+</script>
+</body>
+</html>
